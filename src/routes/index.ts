@@ -5,7 +5,7 @@ import userRoutes from "./userRoutes";
 // import productsRoutes from './products';
 const router = express.Router();
 
-router.use("/api", userRoutes);
+router.use("/api/auth", userRoutes);
 // router.use("/api", contactRoutes);
 // router.use("/api", dashboardRoutes);
 // router.use("/api", productsRoutes);
