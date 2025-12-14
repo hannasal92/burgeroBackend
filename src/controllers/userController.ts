@@ -52,6 +52,8 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const accessToken = generateAccessToken({ id: user._id });
     const refreshToken = generateRefreshToken({ id: user._id });
+    console.log("accessToken "+accessToken)
+    console.log("refreshToken "+refreshToken)
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -68,21 +70,4 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 };
 
-export const refreshToken = (req: Request, res: Response) => {
-  const token = req.cookies.refreshToken;
 
-  if (!token) return res.sendStatus(401);
-
-  try {
-    const payload = jwt.verify(token, REFRESH_TOKEN_SECRET) as { id: string };
-    const newAccessToken = jwt.sign(
-      { id: payload.id },
-      ACCESS_TOKEN_SECRET,
-      { expiresIn: "15s" }
-    );
-
-    return res.json({ accessToken: newAccessToken });
-  } catch {
-    return res.sendStatus(403);
-  }
-};

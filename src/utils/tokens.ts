@@ -5,7 +5,7 @@ const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
 
 // Access token => 15 seconds
 export function generateAccessToken(payload: object) {
-  return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "15s" });
+  return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 }
 
 // Refresh token => 7 days (or 1 day—up to you)
