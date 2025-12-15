@@ -25,6 +25,7 @@ export const submitPayment = async (req: Request, res: Response) => {
     const items = cart.map((item: any) => ({
       productId: item._id,
       name: item.name,
+      imageUrl: item.image,
       price: item.price,
       quantity: item.quantity,
       selectedAdditions: item.selectedAdditions || [],
