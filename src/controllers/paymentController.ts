@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { OrderModel } from "../models/Order";
+import { UserModel } from "../models/User"; // Import User model
+import { sendEmail } from "../services/emailService";
 
-// req.body should contain { cart, total, paymentType }
 export const submitPayment = async (req: Request, res: Response) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer <token>
@@ -10,13 +11,15 @@ export const submitPayment = async (req: Request, res: Response) => {
   if (!token) return res.status(401).json({ message: "No token provided" });
 
   try {
-    // Verify token and get user ID
+    // ✅ Verify token and get user ID
     const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as { id: string };
-
     const userId = payload.id;
 
-    const { cart, total, paymentType } = req.body;
+    // ✅ Fetch user info from DB
+    const user = await UserModel.findById(userId).lean();
+    if (!user) return res.status(404).json({ message: "User not found" });
 
+    const { cart, total, paymentType } = req.body;
     if (!cart || !total || !paymentType) {
       return res.status(400).json({ message: "Cart, total or paymentType missing" });
     }
@@ -43,6 +46,26 @@ export const submitPayment = async (req: Request, res: Response) => {
     });
 
     await newOrder.save();
+
+    // ✅ Send confirmation email
+    await sendEmail({
+      name: user.name,
+      email: user.email,
+      subject: "הזמנתך התקבלה בהצלחה ב-Burgero Bar!",
+      text: `${user.name} היי, 
+      קיבלנו את הזמנתך בהצלחה.
+      סכום ההזמנה: ₪${total}
+
+      תודה שהזמנת אצלנו!
+      תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.`,
+      html: `
+        <p>היי <b>${user.name}</b>,</p>
+        <p>קיבלנו את הזמנתך בהצלחה.</p>
+        <p><b>סכום ההזמנה:</b> ₪${total}<br/>
+        <p>תודה שהזמנת אצלנו!</p>
+        <p>תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.</p>
+      `,
+    });
 
     return res.status(201).json({ message: "Order created successfully", order: newOrder });
   } catch (error) {
