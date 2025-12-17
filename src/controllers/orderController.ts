@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { OrderModel } from "../models/Order";
+import { sendEmail } from "../services/emailService";
 
 export const getOrders = async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
