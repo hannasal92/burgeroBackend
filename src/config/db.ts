@@ -1,43 +1,52 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/intelligenter";
- 
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/intelligenter";
+
+let retryCount = 0;
+const MAX_RETRIES = 5;
+
 export async function connectDB() {
-  let attempt = 0;
+  try {
+    await mongoose.connect(MONGODB_URI, {
+      maxPoolSize: 5,
+      minPoolSize: 2,
+      maxIdleTimeMS: 30000,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
 
-  const connect = async () => {
-    try {
-      await mongoose.connect(MONGODB_URI, {
-        maxPoolSize: 5,
-        minPoolSize: 2,
-        maxIdleTimeMS: 30000,
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-      });
-      console.log("✅ Connected to MongoDB with pooling");
-    } catch (err) {
-      console.error("❌ MongoDB initial connection error:", err);
-      // Retry after delay
-      setTimeout(connect, 5000);
-    }
-  };
+    retryCount = 0; // ✅ reset retries on success
+    console.log("✅ MongoDB connected");
 
-  mongoose.connection.on("disconnected", () => {
-    console.warn("⚠️ MongoDB disconnected! Attempting to reconnect...");
-    attempt++;
-    if(attempt > 5){
+  } catch (err) {
+    retryCount++;
+    console.error(`❌ MongoDB connection failed (attempt ${retryCount})`, err);
+
+    if (retryCount >= MAX_RETRIES) {
+      console.error("🚨 Max MongoDB retries reached. Exiting process.");
       process.exit(1);
     }
-    connect();
-  });
 
-  mongoose.connection.on("error", (err) => {
-    console.error("❌ MongoDB connection error:", err);
-    // Optional: alert admin or trigger monitoring
-  });
-
-  // Initial connect
-  await connect();
+    setTimeout(connectDB, 5000);
+  }
 }
+
+/* ============================
+   CONNECTION EVENTS
+============================ */
+
+mongoose.connection.on("disconnected", () => {
+  console.warn("⚠️ MongoDB disconnected");
+});
+
+mongoose.connection.on("reconnected", () => {
+  console.log("🔄 MongoDB reconnected");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("❌ MongoDB runtime error:", err);
+});
