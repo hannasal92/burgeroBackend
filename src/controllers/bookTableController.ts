@@ -41,16 +41,23 @@ export const bookTable = async (req: Request, res: Response) => {
       month: "long",    // e.g., "דצמבר"
       year: "numeric",
     });
-    await sendEmail({
-      name: name,
-      email: email,
-      subject: "הזמנת שולחן",
-      message: `היי ${booking.name},\n
+      await sendEmail({
+        name: name,
+        email: email,
+        subject: "הזמנת שולחן",
+        text: `${name} היי, 
       בורגירו בר קיבל את הזמנת השולחן שלך. 
-      מספר אנשים: ${booking.people} 
+      מספר אנשים: ${people} 
       תאריך: ${formattedDate}
       תחכה טלפון לאישור ההזמנה.`,
-    });
+        html: `
+          היי <b>${name}</b>,<br><br>
+          בורגירו בר קיבל את הזמנת השולחן שלך.<br>
+          <b>מספר אנשים:</b> ${people}<br>
+          <b>תאריך:</b> ${formattedDate}<br><br>
+          תחכה טלפון לאישור ההזמנה.
+        `,
+      });
     // 4️⃣ החזרת תשובה
     return res.status(201).json({
       message: "Table booked successfully",
