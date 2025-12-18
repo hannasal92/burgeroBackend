@@ -5,7 +5,6 @@ import { generateAccessToken, generateRefreshToken } from "../utils/tokens";
 import jwt from "jsonwebtoken";
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
 
 export const addUser = async (req: Request, res: Response) => {
     const { name, email, phone, password } = req.body;
@@ -23,7 +22,7 @@ export const addUser = async (req: Request, res: Response) => {
         }
             // Register new user
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await UserModel.create({name, email, phone, password: hashedPassword });
+        const newUser = await UserModel.create({name, email, phone, password: hashedPassword, role: "user" });
         return res.status(201).json({
         message: "המשתמש התווסף בהצלחה",
         });
@@ -39,33 +38,33 @@ export const loginUser = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Email and password required" });
 
   try {
-    let user = await UserModel.findOne({ email });
-    if(!user){
-        return res.status(404).json({ error: "המשתמש לא נמצא במערכת" });
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "המשתמש לא נמצא במערכת" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    const {name} = user ;
-
     if (!isMatch)
-      return res.status(404).json({ error: "סיסמה שגויה" });
+      return res.status(401).json({ error: "סיסמה שגויה" });
 
-    const accessToken = generateAccessToken({ id: user._id });
-    const refreshToken = generateRefreshToken({ id: user._id });
-    console.log("accessToken "+accessToken)
-    console.log("refreshToken "+refreshToken)
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+    // Include role in JWT
+    const accessToken = generateAccessToken({
+      id: user._id,
+      role: user.role, // ✅ include role
     });
 
-    return res.json({ message: "התחברת בהצלחה", user : {email, name}, accessToken });
-    
-
+    return res.json({
+      message: "התחברת בהצלחה",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role, // ✅ send to frontend
+      },
+      accessToken,
+    });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ error: "Server error" });
   }
 };

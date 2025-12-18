@@ -6,13 +6,27 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import routes from "./routes";
 
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.ADMIN_URL
+];
+
 export function createApp() {
   const app = express();
   
-  app.use(cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true
-  }));
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true); // ✅ allow
+    } else {
+      callback(new Error("Not allowed by CORS")); // ❌ block
+    }
+  },
+  credentials: true,
+}));
 
   app.use(express.json());
   app.use(cookieParser());
