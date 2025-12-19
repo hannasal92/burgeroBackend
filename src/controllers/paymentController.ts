@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import { OrderModel } from "../models/Order";
 import { UserModel } from "../models/User"; // Import User model
 import { sendEmail } from "../services/emailService";
+import { getNextOrderNumber } from "../services/orderNumberService";
+import mongoose from "mongoose";
 
 export const submitPayment = async (req: Request, res: Response) => {
   const authHeader = req.headers["authorization"];
@@ -36,8 +38,11 @@ export const submitPayment = async (req: Request, res: Response) => {
       note: item.note || "",
     }));
 
+     const orderNumber = await getNextOrderNumber();
+
     // Create new order
     const newOrder = new OrderModel({
+      orderNumber,
       userId,
       items,
       paymentType,
@@ -71,5 +76,51 @@ export const submitPayment = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error creating order:", error);
     return res.status(500).json({ message: "Failed to create order" });
+  }
+};
+export const mockInsertOrder = async (req: Request, res: Response) => {
+  try {
+    const userId = "69434b466f0feb4d4432fabf"; // fallback ID
+
+    const orderNumber = await getNextOrderNumber();
+
+    // Create 1-3 random items
+const id = new mongoose.Types.ObjectId();
+
+      const items = [
+        {
+          productId: id,
+          name: "sdsd",
+          imageUrl: "123",
+          price: 123,
+          quantity: 2,
+          selectedAdditions: [],
+          totalPrice: 0,
+          note: "3213dfsa saf",
+        },
+      ];
+
+    // Calculate totalPrice for each item
+    items.forEach((item) => {
+      item.totalPrice = item.price * item.quantity;
+    });
+
+    const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
+
+    const newOrder = new OrderModel({
+      orderNumber,
+      userId,
+      items,
+      paymentType: "cash",
+      total,
+      status: "pending",
+    });
+
+    await newOrder.save();
+
+    return res.status(201).json({ message: "Mock order inserted", order: newOrder });
+  } catch (err) {
+    console.error("Failed to insert mock order:", err);
+    return res.status(500).json({ message: "Failed to insert mock order" });
   }
 };

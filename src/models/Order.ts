@@ -40,6 +40,7 @@ const OrderItemSchema = new Schema({
 // Main order schema
 const OrderSchema = new Schema(
   {
+    orderNumber: { type: Number, unique: true, index: true }, // ✅
     userId: {
       type: Types.ObjectId,
       ref: "User",
@@ -60,7 +61,7 @@ const OrderSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "completed", "cancelled"],
+      enum: ["pending", "process", "completed", "cancelled"],
       default: "pending",
     },
   },
