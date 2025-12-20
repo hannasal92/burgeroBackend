@@ -2,6 +2,8 @@ import { Schema, model, Types } from "mongoose";
 
 const TableSchema = new Schema(
   {
+    reservationNumber: { type: Number, unique: true, index: true }, // ✅
+
     // 🔐 המשתמש שביצע את ההזמנה
     userId: {
       type: Types.ObjectId,

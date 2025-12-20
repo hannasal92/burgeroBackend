@@ -11,6 +11,6 @@ router.use("/api/auth", userRoutes);
 router.use("/api/product", productRoutes);
 router.use("/api/payment", paymentRoutes);
 router.use("/api/order", orderRoutes);
-router.use("/api/book", boookTableRoutes);
+router.use("/api/tables", boookTableRoutes);
 
 export default router;

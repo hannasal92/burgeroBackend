@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { OrderModel } from "../models/Order";
+import { sendEmail } from "../services/emailService";
 
 export const getOrders = async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
@@ -52,7 +53,7 @@ export const getAllOrders = async (req: Request, res: Response) => {
     // Fetch all orders, sorted by orderNumber ascending
     const orders = await OrderModel.find()
       .sort({ orderNumber: 1 })
-      .populate({ path: "userId", select: "name phone" })
+      .populate({ path: "userId", select: "name phone email" })
       .lean();
 
     // Add userName & userPhone
@@ -60,6 +61,7 @@ export const getAllOrders = async (req: Request, res: Response) => {
         ...order,
         userName: (order.userId as any).name,
         userPhone: (order.userId as any).phone,
+        userEmail: order.userId.email,
         userId: (order.userId as any)._id,
       }));
 
@@ -93,13 +95,14 @@ export const getNewOrders = async (req: Request, res: Response) => {
     // Fetch only orders with orderNumber > afterOrderNumber
     const orders = await OrderModel.find({ orderNumber: { $gt: afterOrderNumber } })
       .sort({ orderNumber: 1 })
-      .populate({ path: "userId", select: "name phone" })
+      .populate({ path: "userId", select: "name phone email" })
       .lean();
 
     const ordersWithUserInfo = orders.map((order: any) => ({
       ...order,
       userName: order.userId.name,
       userPhone: order.userId.phone,
+      userEmail: order.userId.email,
       userId: order.userId._id,
     }));
 
@@ -113,13 +116,26 @@ export const getNewOrders = async (req: Request, res: Response) => {
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
-    const { status } = req.body; // e.g., "inProcess" or "delivered"
-
+    const { status, userData } = req.body; // e.g., "inProcess" or "delivered"
+    const {email, phone, userId} = userData ;
     const order = await OrderModel.findByIdAndUpdate(
       orderId,
       { status },
       { new: true }
     ).lean();
+    
+    // await sendEmail({
+    //   name: email,
+    //   email: email,
+    //   subject: "הזמנתך התקבלה בהצלחה ב-Burgero Bar!",
+    //   text: ` היי, 
+    //   מצב ההזמנה שלך עודכן ל ${status}`,
+    //   html: `
+    //     <p>היי <b></b>,</p>
+    //     <p> מצב ההזמנה שלך עודכן ל ${status}</p>
+    //   `,
+    // });
+
 
     if (!order) return res.status(404).json({ message: "Order not found" });
 

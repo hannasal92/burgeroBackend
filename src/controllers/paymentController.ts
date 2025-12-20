@@ -53,24 +53,24 @@ export const submitPayment = async (req: Request, res: Response) => {
     await newOrder.save();
 
     // ✅ Send confirmation email
-    await sendEmail({
-      name: user.name,
-      email: user.email,
-      subject: "הזמנתך התקבלה בהצלחה ב-Burgero Bar!",
-      text: `${user.name} היי, 
-      קיבלנו את הזמנתך בהצלחה.
-      סכום ההזמנה: ₪${total}
+    // await sendEmail({
+    //   name: user.name,
+    //   email: user.email,
+    //   subject: "הזמנתך התקבלה בהצלחה ב-Burgero Bar!",
+    //   text: `${user.name} היי, 
+    //   קיבלנו את הזמנתך בהצלחה.
+    //   סכום ההזמנה: ₪${total}
 
-      תודה שהזמנת אצלנו!
-      תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.`,
-      html: `
-        <p>היי <b>${user.name}</b>,</p>
-        <p>קיבלנו את הזמנתך בהצלחה.</p>
-        <p><b>סכום ההזמנה:</b> ₪${total}<br/>
-        <p>תודה שהזמנת אצלנו!</p>
-        <p>תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.</p>
-      `,
-    });
+    //   תודה שהזמנת אצלנו!
+    //   תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.`,
+    //   html: `
+    //     <p>היי <b>${user.name}</b>,</p>
+    //     <p>קיבלנו את הזמנתך בהצלחה.</p>
+    //     <p><b>סכום ההזמנה:</b> ₪${total}<br/>
+    //     <p>תודה שהזמנת אצלנו!</p>
+    //     <p>תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.</p>
+    //   `,
+    // });
 
     return res.status(201).json({ message: "Order created successfully", order: newOrder });
   } catch (error) {
