@@ -41,6 +41,7 @@ const OrderItemSchema = new Schema({
 const OrderSchema = new Schema(
   {
     orderNumber: { type: Number, unique: true, index: true }, // ✅
+    delivery: {type: Number, default : 0},
     userId: {
       type: Types.ObjectId,
       ref: "User",

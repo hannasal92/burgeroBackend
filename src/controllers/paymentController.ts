@@ -21,7 +21,7 @@ export const submitPayment = async (req: Request, res: Response) => {
     const user = await UserModel.findById(userId).lean();
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const { cart, total, paymentType } = req.body;
+    const { cart, total, paymentType, delivery } = req.body;
     if (!cart || !total || !paymentType) {
       return res.status(400).json({ message: "Cart, total or paymentType missing" });
     }
@@ -43,12 +43,20 @@ export const submitPayment = async (req: Request, res: Response) => {
     // Create new order
     const newOrder = new OrderModel({
       orderNumber,
+      delivery,
       userId,
       items,
       paymentType,
       total,
       status: "pending",
     });
+
+    // I have to check the prices also in te backend of the cart
+    //#####
+    //
+    //
+    //
+    //
 
     await newOrder.save();
 
