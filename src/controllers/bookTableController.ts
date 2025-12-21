@@ -41,29 +41,31 @@ export const bookTable = async (req: Request, res: Response) => {
       note: req.body.note,
     });
     const bookingDate = new Date(booking.date);
-    const formattedDate = bookingDate.toLocaleDateString("he-IL", {
-      weekday: "long",  // e.g., "יום רביעי"
+    const formattedDate = bookingDate.toLocaleString("he-IL", {
+      weekday: "long",   // יום רביעי
       day: "numeric",
-      month: "long",    // e.g., "דצמבר"
+      month: "long",     // דצמבר
       year: "numeric",
+      hour: "2-digit",   // 18
+      minute: "2-digit", // 30
     });
-      await sendEmail({
-        name: name,
-        email: email,
-        subject: "הזמנת שולחן",
-        text: `${name} היי, 
-      בורגירו בר קיבל את הזמנת השולחן שלך. 
-      מספר אנשים: ${people} 
-      תאריך: ${formattedDate}
-      תחכה טלפון לאישור ההזמנה.`,
-        html: `
-          היי <b>${name}</b>,<br><br>
-          בורגירו בר קיבל את הזמנת השולחן שלך.<br>
-          <b>מספר אנשים:</b> ${people}<br>
-          <b>תאריך:</b> ${formattedDate}<br><br>
-          תחכה טלפון לאישור ההזמנה.
-        `,
-      });
+      // await sendEmail({
+      //   name: name,
+      //   email: email,
+      //   subject: "הזמנת שולחן",
+      //   text: `${name} היי, 
+      // בורגירו בר קיבל את הזמנת השולחן שלך. 
+      // מספר אנשים: ${people} 
+      // תאריך: ${formattedDate}
+      // תחכה טלפון לאישור ההזמנה.`,
+      //   html: `
+      //     היי <b>${name}</b>,<br><br>
+      //     בורגירו בר קיבל את הזמנת השולחן שלך.<br>
+      //     <b>מספר אנשים:</b> ${people}<br>
+      //     <b>תאריך:</b> ${formattedDate}<br><br>
+      //     תחכה טלפון לאישור ההזמנה.
+      //   `,
+      // });
     // 4️⃣ החזרת תשובה
     return res.status(201).json({
       message: "Table booked successfully",

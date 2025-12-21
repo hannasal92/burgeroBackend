@@ -9,10 +9,12 @@ export const refreshToken = (req: Request, res: Response) => {
   }
 
   try {
-    const payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET!) as { id: string };
+    const payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET!) as { id: string, role: string };
 
     const newAccessToken = jwt.sign(
-      { id: payload.id },
+      { id: payload.id,
+        role: payload.role
+      },
       process.env.ACCESS_TOKEN_SECRET!,
       { expiresIn: "15m" } // 15 minutes is more reasonable than 15s
     );
