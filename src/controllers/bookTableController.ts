@@ -4,6 +4,8 @@ import { TableModel } from "../models/Table";
 import { sendEmail } from "../services/emailService";
 import mongoose from "mongoose";
 import { getNextReservationNumber } from "../services/reservationNumberService";
+import { sendWhatsAppMessage } from "../services/whatsappService";
+import { formatPhoneNumber } from "../services/phoneFormatService";
 
 export const bookTable = async (req: Request, res: Response) => {
   try {
@@ -49,23 +51,27 @@ export const bookTable = async (req: Request, res: Response) => {
       hour: "2-digit",   // 18
       minute: "2-digit", // 30
     });
-      // await sendEmail({
-      //   name: name,
-      //   email: email,
-      //   subject: "הזמנת שולחן",
-      //   text: `${name} היי, 
-      // בורגירו בר קיבל את הזמנת השולחן שלך. 
-      // מספר אנשים: ${people} 
-      // תאריך: ${formattedDate}
-      // תחכה טלפון לאישור ההזמנה.`,
-      //   html: `
-      //     היי <b>${name}</b>,<br><br>
-      //     בורגירו בר קיבל את הזמנת השולחן שלך.<br>
-      //     <b>מספר אנשים:</b> ${people}<br>
-      //     <b>תאריך:</b> ${formattedDate}<br><br>
-      //     תחכה טלפון לאישור ההזמנה.
-      //   `,
-      // });
+    const testMsg = `${name} היי, 
+      בורגירו בר קיבל את הזמנת השולחן שלך. 
+      מספר אנשים: ${people} 
+      תאריך: ${formattedDate}
+      תחכה טלפון לאישור ההזמנה.` ;
+    const htmlMsg = `
+          היי <b>${name}</b>,<br><br>
+          בורגירו בר קיבל את הזמנת השולחן שלך.<br>
+          <b>מספר אנשים:</b> ${people}<br>
+          <b>תאריך:</b> ${formattedDate}<br><br>
+          תחכה להודעה לאישור ההזמנה.
+        `;
+      await sendEmail({
+        name: name,
+        email: email,
+        subject: "הזמנת שולחן",
+        text: testMsg,
+        html: htmlMsg,
+      });
+      await sendWhatsAppMessage(formatPhoneNumber(phone), testMsg);
+
     // 4️⃣ החזרת תשובה
     return res.status(201).json({
       message: "Table booked successfully",
