@@ -22,7 +22,7 @@ export const getOrders = async (req: Request, res: Response) => {
     // Find orders for this user only
     const totalOrders = await OrderModel.countDocuments({ userId });
     const orders = await OrderModel.find({ userId })
-      .sort({ orderNumber: 1 })
+      .sort({ orderNumber: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
