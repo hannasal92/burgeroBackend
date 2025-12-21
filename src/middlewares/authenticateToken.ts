@@ -9,7 +9,7 @@ export function authenticateToken(
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (!token) return res.status(401).json({ message: "No token provided" });
+  if (!token) return res.status(401).json({ message: "עליך להתחבר למערכת" });
 
   try {
     const payload = jwt.verify(
