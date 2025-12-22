@@ -29,6 +29,8 @@ export const bookTable = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Please fill in all required fields" });
     }
 
+    //also for the table booking valiadtion of the data
+
     const reservationNumber = await getNextReservationNumber();
     
     // 3️⃣ יצירת הזמנת שולחן
@@ -151,29 +153,49 @@ export const updateTableStatus = async (req: Request, res: Response) => {
          userData.userEmail !== undefined&&
          userData.people !== undefined&&
          userData.reservationDate !== undefined,
-          status === "approved"){
-    const formattedDate = new Date(userData.reservationDate).toLocaleString("he-IL", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-      const testMsg = `${userData.userName} היי, 
-      בורגירו בר אישר את הזמנת השולחן שלך. 
-      מספר אנשים: ${userData.people} 
-      תאריך: ${formattedDate}
-         מחכים לראות אותך` ;
-    const htmlMsg = `
-          היי <b>${userData.userName}</b>,<br><br>
+          (status === "approved" || status ==="declined")){
+      const formattedDate = new Date(userData.reservationDate).toLocaleString("he-IL", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+        let testMsg = "";
+        let htmlMsg = ""
+        if (status === "approved") {
+          testMsg = `${userData.userName} היי, 
+        בורגירו בר אישר את הזמנת השולחן שלך. 
+        מספר אנשים: ${userData.people} 
+        תאריך: ${formattedDate}
+        מחכים לראות אותך`;
+
+        htmlMsg = `
+           <b>${userData.userName} היי</b>,<br><br>
           בורגירו בר אישר את הזמנת השולחן שלך.<br>
           <b>מספר אנשים:</b> ${userData.people}<br>
           <b>תאריך:</b> ${formattedDate}<br><br>
            מחכים לראות אותך` ;
+
+        } else {
+          testMsg = `${userData.userName} היי, 
+          בורגירו בר דחה את הזמנת השולחן שלך. 
+          מספר אנשים: ${userData.people} 
+          תאריך: ${formattedDate}
+          אנא נסה להזמין שוב במועד אחר`;
+
+          htmlMsg = `
+           <b>${userData.userName} היי</b>,<br><br>
+          בורגירו בר דחה את הזמנת השולחן שלך.<br>
+          <b>מספר אנשים:</b> ${userData.people}<br>
+          <b>תאריך:</b> ${formattedDate}<br><br>
+          אנא נסה להזמין שוב במועד אחר`;
+        }
+     
       await sendEmail({
-        name: userData.name,
-        email: userData.email,
+        name: userData.userName,
+        email: userData.userEmail,
         subject: "הזמנת שולחן",
         text: testMsg,
         html: htmlMsg,

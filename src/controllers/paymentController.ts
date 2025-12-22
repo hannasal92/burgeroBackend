@@ -29,7 +29,8 @@ export const submitPayment = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Cart, total or paymentType missing" });
     }
 
-
+    // add also validation on the types and the data that received from the client
+    //also for the table booking
     const result = await validateCartTotal(cart, total, delivery);
     if(!result) {
       return res.status(400).json({ message: "יש בעיה במחיר המחושב" });
