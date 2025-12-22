@@ -7,6 +7,7 @@ import { getNextOrderNumber } from "../services/orderNumberService";
 import mongoose from "mongoose";
 import { sendWhatsAppMessage } from "../services/whatsappService";
 import { formatPhoneNumber } from "../services/phoneFormatService";
+import { validateCartTotal } from "../services/validateCartTotal";
 
 export const submitPayment = async (req: Request, res: Response) => {
   const authHeader = req.headers["authorization"];
@@ -28,6 +29,11 @@ export const submitPayment = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Cart, total or paymentType missing" });
     }
 
+
+    const result = await validateCartTotal(cart, total, delivery);
+    if(!result) {
+      return res.status(400).json({ message: "יש בעיה במחיר המחושב" });
+    }
     // Map cart items to Order schema
     const items = cart.map((item: any) => ({
       productId: item._id,
@@ -52,13 +58,6 @@ export const submitPayment = async (req: Request, res: Response) => {
       total,
       status: "pending",
     });
-
-    // I have to check the prices also in te backend of the cart
-    //#####
-    //
-    //
-    //
-    //
 
     await newOrder.save();
     const textMsg = `${user.name} היי, 
@@ -91,6 +90,7 @@ export const submitPayment = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Failed to create order" });
   }
 };
+
 export const mockInsertOrder = async (req: Request, res: Response) => {
   try {
     const userId = "69434b466f0feb4d4432fabf"; // fallback ID
