@@ -20,7 +20,7 @@ export async function sendEmail({ name, email, subject, text, html }: EmailOptio
 
     await transporter.sendMail({
       from: `"${name}" <${email}>`,
-      to: process.env.GMAIL_USER, // where you want to receive emails
+      to: email, // where you want to receive emails
       subject,
       text, // plain text version
       html, // HTML version
