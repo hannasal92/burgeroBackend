@@ -65,15 +65,20 @@ export const bookTable = async (req: Request, res: Response) => {
           <b>תאריך:</b> ${formattedDate}<br><br>
           תחכה להודעה לאישור ההזמנה.
         `;
-      await sendEmail({
-        name: name,
-        email: email,
-        subject: "הזמנת שולחן",
-        text: testMsg,
-        html: htmlMsg,
+      // await sendEmail({
+      //   name: name,
+      //   email: email,
+      //   subject: "הזמנת שולחן",
+      //   text: testMsg,
+      //   html: htmlMsg,
+      // });
+      // await sendWhatsAppMessage(formatPhoneNumber(phone), testMsg);
+        Promise.allSettled([
+        sendEmail({ name: name, email: email, subject: "הזמנת שולחן", text: testMsg, html: htmlMsg }),
+        sendWhatsAppMessage(formatPhoneNumber(phone), testMsg)
+      ]).then(results => {
+        results.forEach(r => r.status === 'rejected' && console.error(r.reason));
       });
-      await sendWhatsAppMessage(formatPhoneNumber(phone), testMsg);
-
     // 4️⃣ החזרת תשובה
     return res.status(201).json({
       message: "Table booked successfully",
@@ -193,14 +198,20 @@ export const updateTableStatus = async (req: Request, res: Response) => {
           אנא נסה להזמין שוב במועד אחר`;
         }
      
-      await sendEmail({
-        name: userData.userName,
-        email: userData.userEmail,
-        subject: "הזמנת שולחן",
-        text: testMsg,
-        html: htmlMsg,
+      // await sendEmail({
+      //   name: userData.userName,
+      //   email: userData.userEmail,
+      //   subject: "הזמנת שולחן",
+      //   text: testMsg,
+      //   html: htmlMsg,
+      // });
+      // await sendWhatsAppMessage(formatPhoneNumber(userData.userPhone), testMsg);
+        Promise.allSettled([
+        sendEmail({ name: userData.userName, email: userData.userEmail, subject: "הזמנת שולחן", text: testMsg, html: htmlMsg }),
+        sendWhatsAppMessage(formatPhoneNumber(userData.userPhone), testMsg)
+      ]).then(results => {
+        results.forEach(r => r.status === 'rejected' && console.error(r.reason));
       });
-      await sendWhatsAppMessage(formatPhoneNumber(userData.userPhone), testMsg);
     }
    
     return res.status(200).json({ message: "Reservation status updated", reservation: updatedReservation });

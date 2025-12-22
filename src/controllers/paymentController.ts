@@ -75,14 +75,20 @@ export const submitPayment = async (req: Request, res: Response) => {
         <p>תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.</p>
       `
     
-    await sendWhatsAppMessage(formatPhoneNumber(user.phone), textMsg);
-    // ✅ Send confirmation email
-    await sendEmail({
-      name: user.name,
-      email: user.email,
-      subject: "הזמנתך התקבלה בהצלחה ב-Burgero Bar!",
-      text: textMsg,
-      html: htmlMsg,
+    // await sendWhatsAppMessage(formatPhoneNumber(user.phone), textMsg);
+    // // ✅ Send confirmation email
+    // await sendEmail({
+    //   name: user.name,
+    //   email: user.email,
+    //   subject: "הזמנתך התקבלה בהצלחה ב-Burgero Bar!",
+    //   text: textMsg,
+    //   html: htmlMsg,
+    // });
+      Promise.allSettled([
+      sendEmail({ name: user.name, email: user.email, subject: "הזמנת שולחן", text: textMsg, html: htmlMsg }),
+      sendWhatsAppMessage(formatPhoneNumber(user.phone), textMsg)
+    ]).then(results => {
+      results.forEach(r => r.status === 'rejected' && console.error(r.reason));
     });
 
     return res.status(201).json({ message: "Order created successfully", order: newOrder });

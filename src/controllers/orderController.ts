@@ -163,14 +163,20 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
           <p>מצב ההזמנה שלך עודכן ל מוכן השליח בדרכו אליך</p>
         `
       }
-      await sendWhatsAppMessage(formatPhoneNumber(phone), textMsg);
+      // await sendWhatsAppMessage(formatPhoneNumber(phone), textMsg);
     
-      await sendEmail({
-        name: email,
-        email: email,
-        subject: "ההזמנה שלך מוכנה -Burgero Bar!",
-        text: textMsg,
-        html: htmlMsg,
+      // await sendEmail({
+      //   name: email,
+      //   email: email,
+      //   subject: "ההזמנה שלך מוכנה -Burgero Bar!",
+      //   text: textMsg,
+      //   html: htmlMsg,
+      // });
+        Promise.allSettled([
+        sendEmail({ name: name, email: email, subject: "הזמנת שולחן", text: textMsg, html: htmlMsg }),
+        sendWhatsAppMessage(formatPhoneNumber(phone), textMsg)
+      ]).then(results => {
+        results.forEach(r => r.status === 'rejected' && console.error(r.reason));
       });
     }
 
