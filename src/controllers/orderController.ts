@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { OrderModel } from "../models/Order";
 import { sendEmail } from "../services/emailService";
+import { sendWhatsAppMessage } from "../services/whatsappService";
+import { formatPhoneNumber } from "../services/phoneFormatService";
 
 export const getOrders = async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
@@ -115,29 +117,62 @@ export const getNewOrders = async (req: Request, res: Response) => {
 
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
+
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "No token provided" });
+
+    const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as {
+      role: string;
+      id: string;
+    };
+
+    if (payload.role !== "admin")
+      return res.status(403).json({ message: "Access denied" });
+    
+
     const { orderId } = req.params;
     const { status, userData } = req.body; // e.g., "inProcess" or "delivered"
-    const {email, phone, userId} = userData ;
+    const {email, phone, name} = userData ;
     const order = await OrderModel.findByIdAndUpdate(
       orderId,
       { status },
       { new: true }
     ).lean();
     
-    // await sendEmail({
-    //   name: email,
-    //   email: email,
-    //   subject: "הזמנתך התקבלה בהצלחה ב-Burgero Bar!",
-    //   text: ` היי, 
-    //   מצב ההזמנה שלך עודכן ל ${status}`,
-    //   html: `
-    //     <p>היי <b></b>,</p>
-    //     <p> מצב ההזמנה שלך עודכן ל ${status}</p>
-    //   `,
-    // });
-
-
     if (!order) return res.status(404).json({ message: "Order not found" });
+    if( 
+      status === "done" 
+      && email !== undefined
+      && phone !== undefined
+      && name !== undefined
+    )
+    {
+
+      let textMsg = `${name} היי, 
+       מצב ההזמנה שלך עודכן ל מוכן תבוא לקחת את ההזמנה שלך`
+      let htmlMsg = `
+          <p>היי <b></b>,</p>
+          <p>מצב ההזמנה שלך עודכן ל מוכן תבוא לקחת את ההזמנה שלך </p>
+        `
+      if(order?.delivery){
+        textMsg = `${name} היי, 
+           מצב ההזמנה שלך עודכן ל מוכן השליח בדרכו אליך`
+        htmlMsg =`
+          <p>היי <b></b>,</p>
+          <p>מצב ההזמנה שלך עודכן ל מוכן השליח בדרכו אליך</p>
+        `
+      }
+      await sendWhatsAppMessage(formatPhoneNumber(phone), textMsg);
+    
+      await sendEmail({
+        name: email,
+        email: email,
+        subject: "ההזמנה שלך מוכנה -Burgero Bar!",
+        text: textMsg,
+        html: htmlMsg,
+      });
+    }
 
     res.status(200).json({ message: "Status updated", order });
   } catch (error) {

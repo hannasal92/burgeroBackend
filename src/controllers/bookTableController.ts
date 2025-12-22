@@ -132,7 +132,7 @@ export const updateTableStatus = async (req: Request, res: Response) => {
 
     const { reservationId } = req.params;
     const { status } = req.body;
-
+    const { userData } = req.body;
     if (!status) return res.status(400).json({ message: "Status is required" });
 
     // 4️⃣ Update reservation status
@@ -145,7 +145,42 @@ export const updateTableStatus = async (req: Request, res: Response) => {
     if (!updatedReservation) {
       return res.status(404).json({ message: "Reservation not found" });
     }
-
+    if(userData &&
+       userData.userPhone !== undefined &&
+        userData.userName !== undefined &&
+         userData.userEmail !== undefined&&
+         userData.people !== undefined&&
+         userData.reservationDate !== undefined,
+          status === "approved"){
+    const formattedDate = new Date(userData.reservationDate).toLocaleString("he-IL", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+      const testMsg = `${userData.userName} היי, 
+      בורגירו בר אישר את הזמנת השולחן שלך. 
+      מספר אנשים: ${userData.people} 
+      תאריך: ${formattedDate}
+         מחכים לראות אותך` ;
+    const htmlMsg = `
+          היי <b>${userData.userName}</b>,<br><br>
+          בורגירו בר אישר את הזמנת השולחן שלך.<br>
+          <b>מספר אנשים:</b> ${userData.people}<br>
+          <b>תאריך:</b> ${formattedDate}<br><br>
+           מחכים לראות אותך` ;
+      await sendEmail({
+        name: userData.name,
+        email: userData.email,
+        subject: "הזמנת שולחן",
+        text: testMsg,
+        html: htmlMsg,
+      });
+      await sendWhatsAppMessage(formatPhoneNumber(userData.userPhone), testMsg);
+    }
+   
     return res.status(200).json({ message: "Reservation status updated", reservation: updatedReservation });
   } catch (error) {
     console.error("Update table status error:", error);

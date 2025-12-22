@@ -5,6 +5,8 @@ import { UserModel } from "../models/User"; // Import User model
 import { sendEmail } from "../services/emailService";
 import { getNextOrderNumber } from "../services/orderNumberService";
 import mongoose from "mongoose";
+import { sendWhatsAppMessage } from "../services/whatsappService";
+import { formatPhoneNumber } from "../services/phoneFormatService";
 
 export const submitPayment = async (req: Request, res: Response) => {
   const authHeader = req.headers["authorization"];
@@ -59,26 +61,29 @@ export const submitPayment = async (req: Request, res: Response) => {
     //
 
     await newOrder.save();
-
+    const textMsg = `${user.name} היי, 
+      בורגירו בר קיבל את ההזמנה בהצלחה . 
+      סכום ההזמנה: ₪${total}
+      תודה שהזמנת אצלנו!
+      תקבל/י הודעה נוספת כאשר מצב ההזמנה יתעדכן.`
+    const htmlMsg = 
+    `
+        <p>היי <b>${user.name}</b>,</p>
+        <p>בורגירו בר קיבל את ההזמנה בהצלחה.</p>
+        <p><b>סכום ההזמנה:</b> ₪${total}<br/>
+        <p>תודה שהזמנת אצלנו!</p>
+        <p>תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.</p>
+      `
+    
+    await sendWhatsAppMessage(formatPhoneNumber(user.phone), textMsg);
     // ✅ Send confirmation email
-    // await sendEmail({
-    //   name: user.name,
-    //   email: user.email,
-    //   subject: "הזמנתך התקבלה בהצלחה ב-Burgero Bar!",
-    //   text: `${user.name} היי, 
-    //   קיבלנו את הזמנתך בהצלחה.
-    //   סכום ההזמנה: ₪${total}
-
-    //   תודה שהזמנת אצלנו!
-    //   תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.`,
-    //   html: `
-    //     <p>היי <b>${user.name}</b>,</p>
-    //     <p>קיבלנו את הזמנתך בהצלחה.</p>
-    //     <p><b>סכום ההזמנה:</b> ₪${total}<br/>
-    //     <p>תודה שהזמנת אצלנו!</p>
-    //     <p>תקבל/י הודעה נוספת למייל כאשר מצב ההזמנה יתעדכן.</p>
-    //   `,
-    // });
+    await sendEmail({
+      name: user.name,
+      email: user.email,
+      subject: "הזמנתך התקבלה בהצלחה ב-Burgero Bar!",
+      text: textMsg,
+      html: htmlMsg,
+    });
 
     return res.status(201).json({ message: "Order created successfully", order: newOrder });
   } catch (error) {
