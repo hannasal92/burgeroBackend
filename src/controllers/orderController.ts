@@ -152,14 +152,14 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
       let textMsg = `${name} היי, 
        מצב ההזמנה שלך עודכן ל מוכן תבוא לקחת את ההזמנה שלך`
       let htmlMsg = `
-          <p>היי <b></b>,</p>
+          <p>${name} היי <b></b>,</p>
           <p>מצב ההזמנה שלך עודכן ל מוכן תבוא לקחת את ההזמנה שלך </p>
         `
       if(order?.delivery){
         textMsg = `${name} היי, 
            מצב ההזמנה שלך עודכן ל מוכן השליח בדרכו אליך`
         htmlMsg =`
-          <p>היי <b></b>,</p>
+          <p>${name} היי <b></b>,</p>
           <p>מצב ההזמנה שלך עודכן ל מוכן השליח בדרכו אליך</p>
         `
       }
