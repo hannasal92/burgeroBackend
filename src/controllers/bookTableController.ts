@@ -55,7 +55,7 @@ export const bookTable = async (req: Request, res: Response) => {
       בורגירו בר קיבל את הזמנת השולחן שלך. 
       מספר אנשים: ${people} 
       תאריך: ${formattedDate}
-      תחכה טלפון לאישור ההזמנה.` ;
+      תחכה להודעה לאישור ההזמנה.` ;
     const htmlMsg = `
           היי <b>${name}</b>,<br><br>
           בורגירו בר קיבל את הזמנת השולחן שלך.<br>
