@@ -85,7 +85,7 @@ export const submitPayment = async (req: Request, res: Response) => {
     //   html: htmlMsg,
     // });
       Promise.allSettled([
-      sendEmail({ name: user.name, email: user.email, subject: "הזמנת שולחן", text: textMsg, html: htmlMsg }),
+      sendEmail({ name: user.name, email: user.email, subject: "הזמנת אוכל", text: textMsg, html: htmlMsg }),
       sendWhatsAppMessage(formatPhoneNumber(user.phone), textMsg)
     ]).then(results => {
       results.forEach(r => r.status === 'rejected' && console.error(r.reason));
